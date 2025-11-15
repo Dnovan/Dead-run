@@ -6,17 +6,19 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '/game/dino_run.dart';
 import '/widgets/main_menu.dart';
 
-// --- Modelo de Datos para un Artículo de la Tienda ---
+// --- El Modelo de Datos AHORA SÍ usa la 'description' ---
 class StoreItem {
   final int id;
   final String name;
+  final String description;
   final int price;
-  final String assetPath; // Ruta al spritesheet PNG para el juego
-  final String gifPath; // Ruta al GIF animado para la tienda y el inventario
+  final String assetPath;
+  final String gifPath;
 
   StoreItem({
     required this.id,
     required this.name,
+    required this.description,
     required this.price,
     required this.assetPath,
     required this.gifPath,
@@ -25,15 +27,15 @@ class StoreItem {
   factory StoreItem.fromMap(Map<String, dynamic> map) {
     return StoreItem(
       id: map['id'],
-      name: map['name'],
-      price: map['price'],
+      name: map['name'] ?? '',
+      description: map['description'] ?? 'Una skin misteriosa.',
+      price: map['price'] ?? 0,
       assetPath: map['asset_path'] ?? '',
       gifPath: map['gif_path'] ?? '',
     );
   }
 }
 
-// --- Widget de la Pantalla de la Tienda ---
 class StoreMenu extends StatefulWidget {
   static const String id = 'StoreMenu';
   final DinoRun game;
@@ -46,10 +48,9 @@ class StoreMenu extends StatefulWidget {
 
 class _StoreMenuState extends State<StoreMenu> {
   late final Future<List<StoreItem>> _futureItems;
-  bool _isBuying = false;
+  int? _buyingItemId;
+  StoreItem? _inspectedItem;
 
-  // --- ¡MUY IMPORTANTE! ---
-  // Reemplaza esta cadena con el UUID que creaste para tu jugador de prueba.
   final String _playerId = 'EL_UUID_QUE_GENERASTE_Y_GUARDASTE';
 
   @override
@@ -68,9 +69,9 @@ class _StoreMenuState extends State<StoreMenu> {
   }
 
   Future<void> _buyItem(StoreItem item) async {
-    if (_isBuying) return;
+    if (_buyingItemId != null) return;
     setState(() {
-      _isBuying = true;
+      _buyingItemId = item.id;
     });
 
     try {
@@ -97,116 +98,167 @@ class _StoreMenuState extends State<StoreMenu> {
     } finally {
       if (mounted) {
         setState(() {
-          _isBuying = false;
+          _buyingItemId = null;
         });
       }
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black.withAlpha(100),
-      body: Center(
-        child: Column(
+  Widget _buildStoreList(List<StoreItem> items) {
+    return Column(
+      children: [
+        const Text('Tienda', style: TextStyle(fontFamily: 'Audiowide', fontSize: 50, color: Colors.white, shadows: [Shadow(blurRadius: 10.0, color: Colors.black, offset: Offset(2, 2))])),
+        const Divider(color: Colors.white30, thickness: 2, height: 40),
+        Expanded(
+          child: ListView.builder(
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final item = items[index];
+              return InkWell(
+                onTap: () => setState(() => _inspectedItem = item),
+                child: Container(
+                  margin: const EdgeInsets.symmetric(vertical: 5),
+                  padding: const EdgeInsets.all(10),
+                  child: Row(
+                    children: [
+                      SizedBox(width: 64, height: 64, child: Image.asset(item.gifPath, filterQuality: FilterQuality.none)),
+                      const SizedBox(width: 20),
+                      Expanded(child: Text(item.name, style: const TextStyle(fontSize: 22, color: Colors.white))),
+                      Text('${item.price} monedas', style: const TextStyle(fontSize: 18, color: Colors.white70)),
+                      const SizedBox(width: 20),
+                      TextButton(
+                        style: TextButton.styleFrom(
+                          backgroundColor: const Color(0xFF33D1FF).withOpacity(0.2),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+                        ),
+                        onPressed: () => setState(() => _inspectedItem = item),
+                        child: const Text('Inspeccionar', style: TextStyle(fontSize: 16, color: Colors.white)),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        const Divider(color: Colors.white30, thickness: 2, height: 40),
+        _MenuButton(text: 'Volver', onPressed: () {
+          widget.game.overlays.remove(StoreMenu.id);
+          widget.game.overlays.add(MainMenu.id);
+        }),
+      ],
+    );
+  }
+  
+  Widget _buildInspectView(StoreItem item) {
+    final isBuyingThisItem = _buyingItemId == item.id;
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          item.name,
+          style: const TextStyle(fontFamily: 'Audiowide', fontSize: 50, color: Colors.white, shadows: [Shadow(blurRadius: 10.0, color: Colors.black)]),
+        ),
+        const SizedBox(height: 30),
+        SizedBox(width: 200, height: 200, child: Image.asset(item.gifPath, filterQuality: FilterQuality.none, fit: BoxFit.contain)),
+        const SizedBox(height: 20),
+        SizedBox(
+          width: 500,
+          child: Text(
+            item.description,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+                fontSize: 20, 
+                color: Colors.white70, 
+                fontStyle: FontStyle.italic,
+                shadows: [Shadow(blurRadius: 4.0, color: Colors.black)],
+            ),
+          ),
+        ),
+        const SizedBox(height: 40),
+        Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('Tienda',
-                style: TextStyle(fontSize: 48.0, color: Colors.white)),
-            const SizedBox(height: 30),
-            Expanded(
-              child: FutureBuilder<List<StoreItem>>(
-                future: _futureItems,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (snapshot.hasError) {
-                    return Center(
-                        child: Text('Error: ${snapshot.error}',
-                            style: const TextStyle(color: Colors.red)));
-                  }
-                  final items = snapshot.data;
-                  if (items == null || items.isEmpty) {
-                    return const Center(
-                        child: Text('No hay artículos disponibles.',
-                            style: TextStyle(color: Colors.white)));
-                  }
-
-                  return GridView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 50),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      crossAxisSpacing: 15,
-                      mainAxisSpacing: 15,
-                      childAspectRatio: 0.75,
-                    ),
-                    itemCount: items.length,
-                    itemBuilder: (context, index) {
-                      final item = items[index];
-                      return Card(
-                        color: Colors.white.withAlpha(200),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: item.gifPath.isNotEmpty
-                                    ? FractionallySizedBox(
-                                        widthFactor: 0.8,
-                                        heightFactor: 0.8,
-                                        child: Image.asset(
-                                          item.gifPath,
-                                          fit: BoxFit.contain,
-                                          // ¡LA CORRECCIÓN PARA EL PIXEL ART!
-                                          filterQuality: FilterQuality.none,
-                                        ),
-                                      )
-                                    : const Placeholder(),
-                              ),
-                            ),
-                            Text(item.name,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 16)),
-                            Text('${item.price} monedas'),
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                    fixedSize: const Size(100, 30)),
-                                onPressed:
-                                    _isBuying ? null : () => _buyItem(item),
-                                child: _isBuying
-                                    ? const SizedBox(
-                                        height: 15,
-                                        width: 15,
-                                        child: CircularProgressIndicator(
-                                            strokeWidth: 2))
-                                    : const Text('Comprar'),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
+            _ActionButton(
+              text: 'Comprar (${item.price} monedas)',
+              onPressed: (_buyingItemId != null) ? null : () => _buyItem(item),
+              child: isBuyingThisItem ? const SizedBox(width: 15, height: 15, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : null,
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                widget.game.overlays.remove(StoreMenu.id);
-                widget.game.overlays.add(MainMenu.id);
-              },
-              child: const Text('Volver'),
-            ),
-            const SizedBox(height: 20),
+            const SizedBox(width: 20),
+            _ActionButton(text: 'Cerrar', onPressed: () => setState(() => _inspectedItem = null)),
           ],
+        )
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 800, maxHeight: 600),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: const Color(0xCC0A1724),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: Colors.white.withOpacity(0.2)),
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 15, spreadRadius: 5)],
+          ),
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            child: _inspectedItem == null 
+              ? FutureBuilder<List<StoreItem>>(
+                  future: _futureItems,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator(color: Colors.white));
+                    } else if (snapshot.hasError) {
+                      return Center(child: Text('Error: ${snapshot.error}'));
+                    }
+                    return _buildStoreList(snapshot.data ?? []);
+                  },
+                )
+              : _buildInspectView(_inspectedItem!),
+          ),
         ),
       ),
+    );
+  }
+}
+
+class _MenuButton extends StatelessWidget {
+  final String text;
+  final VoidCallback onPressed;
+  const _MenuButton({required this.text, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton(
+      onPressed: onPressed,
+      style: TextButton.styleFrom(
+        foregroundColor: Colors.white.withOpacity(0.9),
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 20),
+        overlayColor: Colors.white.withOpacity(0.1),
+      ),
+      child: Text(text, style: const TextStyle(fontFamily: 'Audiowide', fontSize: 28.0, shadows: [Shadow(blurRadius: 8.0, color: Colors.black, offset: Offset(2, 2))])),
+    );
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  final String text;
+  final VoidCallback? onPressed;
+  final Widget? child;
+
+  const _ActionButton({required this.text, this.onPressed, this.child});
+  
+  @override
+  Widget build(BuildContext context) {
+    return TextButton(
+      style: TextButton.styleFrom(backgroundColor: const Color(0xFF33D1FF).withOpacity(0.2), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)), padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15)),
+      onPressed: onPressed,
+      child: child ?? Text(text, style: const TextStyle(fontSize: 18, color: Colors.white)),
     );
   }
 }
