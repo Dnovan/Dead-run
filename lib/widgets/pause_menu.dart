@@ -3,11 +3,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '/game/dino_run.dart';
-import '/game/audio_manager.dart';
-import '/models/player_data.dart';
-import '/widgets/hud.dart';
-import '/widgets/main_menu.dart';
+import '../game/dino_run.dart';
+import '../game/audio_manager.dart';
+import '../models/player_data.dart';
+import 'hud.dart';
 
 class PauseMenu extends StatelessWidget {
   static const id = 'PauseMenu';
@@ -59,12 +58,7 @@ class PauseMenu extends StatelessWidget {
               _MenuButton(
                 text: 'Restart',
                 onPressed: () async {
-                  game.overlays.remove(PauseMenu.id);
-                  game.overlays.add(Hud.id);
-                  game.resumeEngine();
-
-                  game.playerData.currentScore = 0;
-                  game.playerData.lives = 5;
+                  // No necesita remover el overlay de pausa, startGamePlay se encarga.
                   await game.startGamePlay(game.currentLevel!);
                 },
               ),
@@ -72,15 +66,9 @@ class PauseMenu extends StatelessWidget {
 
               _MenuButton(
                 text: 'Exit',
-                onPressed: () async {
-                  game.reset();
-                  await Future.delayed(const Duration(milliseconds: 10));
-
-                  if (context.mounted) {
-                    game.overlays.remove(PauseMenu.id);
-                    game.overlays.add(MainMenu.id);
-                    game.resumeEngine();
-                  }
+                onPressed: () {
+                  // Simplemente llama al director de escena para volver al menú.
+                  game.showMainMenu();
                 },
               ),
             ],

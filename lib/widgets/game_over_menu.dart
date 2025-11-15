@@ -1,23 +1,53 @@
 // lib/widgets/game_over_menu.dart
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '/game/dino_run.dart';
-import '/models/player_data.dart';
-import '/widgets/hud.dart';
-import '/widgets/main_menu.dart';
+import '../game/dino_run.dart';
+import '../models/player_data.dart';
+import 'hud.dart';
+import 'main_menu.dart';
 
-class GameOverMenu extends StatelessWidget {
+class GameOverMenu extends StatefulWidget {
   static const id = 'GameOverMenu';
   final DinoRun game;
 
   const GameOverMenu(this.game, {super.key});
 
   @override
+  State<GameOverMenu> createState() => _GameOverMenuState();
+}
+
+class _GameOverMenuState extends State<GameOverMenu> {
+  // ¡¡IMPORTANTE!! Pega aquí el UUID de tu jugador que creaste en Supabase.
+  final String _playerId = '5836c3f4-9378-4e31-94c1-78e52482de34'; 
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final score = widget.game.playerData.currentScore;
+      
+      widget.game.playerData.coins += score;
+      widget.game.playerData.save();
+
+      try {
+        await Supabase.instance.client.rpc('update_coins', params: {
+          'player_id': _playerId,
+          'new_coins': widget.game.playerData.coins,
+        });
+      } catch (e) {
+        debugPrint('Error al guardar monedas en Supabase: $e');
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider.value(
-      value: game.playerData,
+      value: widget.game.playerData,
       child: Align(
         alignment: Alignment.centerLeft,
         child: Padding(
@@ -26,19 +56,16 @@ class GameOverMenu extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Game Over',
+              const Text('Game Over',
                 style: TextStyle(
                   fontFamily: 'Audiowide',
                   fontSize: 60,
                   color: Colors.white,
-                  shadows: [
-                    Shadow(blurRadius: 12.0, color: Colors.black, offset: Offset(2, 2)),
-                  ],
+                  shadows: [Shadow(blurRadius: 12.0, color: Colors.black, offset: Offset(2, 2))],
                 ),
               ),
               const SizedBox(height: 30),
-              
+
               Selector<PlayerData, int>(
                 selector: (_, playerData) => playerData.currentScore,
                 builder: (_, score, __) {
@@ -48,9 +75,23 @@ class GameOverMenu extends StatelessWidget {
                       fontFamily: 'Audiowide',
                       fontSize: 40,
                       color: Colors.white,
-                      shadows: [
-                        Shadow(blurRadius: 8.0, color: Colors.black, offset: Offset(2, 2)),
-                      ],
+                      shadows: [Shadow(blurRadius: 8.0, color: Colors.black, offset: Offset(2, 2))],
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+
+              Selector<PlayerData, int>(
+                selector: (_, playerData) => playerData.currentScore,
+                builder: (_, score, __) {
+                  return Text(
+                    '+ $score Monedas Ganadas',
+                    style: const TextStyle(
+                      fontFamily: 'Audiowide',
+                      fontSize: 24,
+                      color: Color(0xFFFFD700),
+                      shadows: [Shadow(blurRadius: 8.0, color: Colors.black, offset: Offset(2, 2))],
                     ),
                   );
                 },
@@ -60,13 +101,14 @@ class GameOverMenu extends StatelessWidget {
               _MenuButton(
                 text: 'Restart',
                 onPressed: () async {
-                  game.overlays.remove(GameOverMenu.id);
-                  game.overlays.add(Hud.id);
-                  game.resumeEngine();
+                  widget.game.overlays.remove(GameOverMenu.id);
+                  widget.game.overlays.add(Hud.id);
+                  widget.game.resumeEngine();
                   
-                  game.playerData.currentScore = 0;
-                  game.playerData.lives = 5;
-                  await game.startGamePlay(game.currentLevel!);
+                  // Lógica correcta, se reinician datos y se carga el mismo nivel.
+                  widget.game.playerData.currentScore = 0;
+                  widget.game.playerData.lives = 5;
+                  await widget.game.startGamePlay(widget.game.currentLevel!);
                 },
               ),
               const SizedBox(height: 15),
@@ -74,14 +116,14 @@ class GameOverMenu extends StatelessWidget {
               _MenuButton(
                 text: 'Exit',
                 onPressed: () async {
-                  game.reset();
+                  widget.game.overlays.remove(GameOverMenu.id);
+                  widget.game.overlays.add(MainMenu.id);
+                  widget.game.resumeEngine();
+
+                  // Llamada al nuevo 'reset' que limpia todo correctamente.
+                  widget.game.reset();
+
                   await Future.delayed(const Duration(milliseconds: 10));
-                  
-                  if (context.mounted) {
-                    game.overlays.remove(GameOverMenu.id);
-                    game.overlays.add(MainMenu.id);
-                    game.resumeEngine();
-                  }
                 },
               ),
             ],
@@ -95,7 +137,6 @@ class GameOverMenu extends StatelessWidget {
 class _MenuButton extends StatelessWidget {
   final String text;
   final VoidCallback onPressed;
-
   const _MenuButton({required this.text, required this.onPressed});
 
   @override
@@ -103,18 +144,15 @@ class _MenuButton extends StatelessWidget {
     return TextButton(
       onPressed: onPressed,
       style: TextButton.styleFrom(
-        foregroundColor: Colors.white.withOpacity(0.9),
+        foregroundColor: Colors.white.withAlpha((255 * 0.9).round()),
         padding: const EdgeInsets.symmetric(vertical: 8.0),
-        overlayColor: Colors.white.withOpacity(0.1),
+        overlayColor: Colors.white.withAlpha((255 * 0.1).round()),
       ),
-      child: Text(
-        text,
+      child: Text(text,
         style: const TextStyle(
           fontFamily: 'Audiowide',
           fontSize: 28.0,
-          shadows: [
-            Shadow(blurRadius: 8.0, color: Colors.black, offset: Offset(2, 2)),
-          ],
+          shadows: [Shadow(blurRadius: 8.0, color: Colors.black, offset: Offset(2, 2))],
         ),
       ),
     );

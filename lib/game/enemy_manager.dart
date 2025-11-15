@@ -2,9 +2,9 @@ import 'dart:math';
 
 import 'package:flame/components.dart';
 
-import '/game/enemy.dart';
-import '/game/dino_run.dart';
-import '/models/enemy_data.dart';
+import 'enemy.dart';
+import 'dino_run.dart';
+import '../models/enemy_data.dart';
 
 // This class is responsible for spawning random enemies at certain
 // interval of time depending upon players current score.

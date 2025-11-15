@@ -3,10 +3,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '/game/dino_run.dart';
-import '/models/settings.dart';
-import '/widgets/main_menu.dart';
-import '/game/audio_manager.dart';
+import '../game/dino_run.dart';
+import '../models/settings.dart';
+import 'main_menu.dart';
+import '../game/audio_manager.dart';
 
 // Represents the settings menu overlay.
 class SettingsMenu extends StatelessWidget {
@@ -28,9 +28,9 @@ class SettingsMenu extends StatelessWidget {
             decoration: BoxDecoration(
               color: const Color(0xCC0A1724), // El mismo azul oscuro semi-transparente de la tienda
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.white.withOpacity(0.2)),
+              border: Border.all(color: Colors.white.withAlpha((255 * 0.2).round())),
               boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 15, spreadRadius: 5),
+                BoxShadow(color: Colors.black.withAlpha((255 * 0.5).round()), blurRadius: 15, spreadRadius: 5),
               ],
             ),
             child: Column(
@@ -127,9 +127,9 @@ class _SettingsRow extends StatelessWidget {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeTrackColor: const Color(0xFF33D1FF).withOpacity(0.5),
-            activeColor: const Color(0xFF33D1FF),
-            inactiveTrackColor: Colors.grey.withOpacity(0.5),
+            activeTrackColor: const Color(0xFF33D1FF).withAlpha((255 * 0.5).round()),
+            activeThumbColor: const Color(0xFF33D1FF),
+            inactiveTrackColor: Colors.grey.withAlpha((255 * 0.5).round()),
             inactiveThumbColor: Colors.grey,
           ),
         ],
@@ -150,9 +150,9 @@ class _MenuButton extends StatelessWidget {
     return TextButton(
       onPressed: onPressed,
       style: TextButton.styleFrom(
-        foregroundColor: Colors.white.withOpacity(0.9),
+        foregroundColor: Colors.white.withAlpha((255 * 0.9).round()),
         padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 20),
-        overlayColor: Colors.white.withOpacity(0.1),
+        overlayColor: Colors.white.withAlpha((255 * 0.1).round()),
       ),
       child: Text(text, style: const TextStyle(fontFamily: 'Audiowide', fontSize: 28.0, shadows: [Shadow(blurRadius: 8.0, color: Colors.black, offset: Offset(2, 2))])),
     );

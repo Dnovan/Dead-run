@@ -1,11 +1,10 @@
 // lib/widgets/level_selection_menu.dart
 
 import 'package:flutter/material.dart';
-import '../../game/dino_run.dart';
-import 'main_menu.dart';
-import 'hud.dart';
+import '../game/dino_run.dart';
 
-// Clase para organizar los datos de cada nivel.
+// No necesitamos importar 'hud.dart' ni 'main_menu.dart' porque ya no los gestionamos desde aquí.
+
 class _LevelInfo {
   final String levelId;
   final String displayName;
@@ -29,7 +28,6 @@ class LevelSelectionMenu extends StatefulWidget {
 }
 
 class _LevelSelectionMenuState extends State<LevelSelectionMenu> {
-  // Catálogo de niveles.
   final List<_LevelInfo> _levels = const [
     _LevelInfo(
       levelId: 'forest',
@@ -51,15 +49,11 @@ class _LevelSelectionMenuState extends State<LevelSelectionMenu> {
   int _selectedIndex = 0;
 
   void _selectNext() {
-    setState(() {
-      _selectedIndex = (_selectedIndex + 1) % _levels.length;
-    });
+    setState(() => _selectedIndex = (_selectedIndex + 1) % _levels.length);
   }
 
   void _selectPrevious() {
-    setState(() {
-      _selectedIndex = (_selectedIndex - 1 + _levels.length) % _levels.length;
-    });
+    setState(() => _selectedIndex = (_selectedIndex - 1 + _levels.length) % _levels.length);
   }
 
   @override
@@ -82,7 +76,6 @@ class _LevelSelectionMenuState extends State<LevelSelectionMenu> {
           ),
           const SizedBox(height: 40),
 
-          // --- El Carrusel Interactivo (sin cambios aquí) ---
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -125,25 +118,22 @@ class _LevelSelectionMenuState extends State<LevelSelectionMenu> {
           ),
           const SizedBox(height: 30),
 
-          // ¡¡AQUÍ ESTÁ LA MAGIA!! Reemplazamos los ElevatedButton
-          // por nuestros botones personalizados estilo Dead Cells.
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _MenuButton(
                 text: 'Jugar',
-                onPressed: () async {
-                  await widget.game.startGamePlay(selectedLevel.levelId);
-                  widget.game.overlays.remove(LevelSelectionMenu.id);
-                  widget.game.overlays.add(Hud.id);
+                onPressed: () {
+                  // Simplemente le da la orden al juego de empezar con el nivel seleccionado.
+                  widget.game.startGamePlay(selectedLevel.levelId);
                 },
               ),
               const SizedBox(width: 40),
               _MenuButton(
                 text: 'Volver',
                 onPressed: () {
-                  widget.game.overlays.remove(LevelSelectionMenu.id);
-                  widget.game.overlays.add(MainMenu.id);
+                  // Le da la orden al juego de volver al menú principal.
+                  widget.game.showMainMenu();
                 },
               ),
             ],
@@ -154,8 +144,6 @@ class _LevelSelectionMenuState extends State<LevelSelectionMenu> {
   }
 }
 
-// Widget auxiliar para crear botones de texto con el estilo "GOD"
-// y mantener consistencia con los otros menús.
 class _MenuButton extends StatelessWidget {
   final String text;
   final VoidCallback onPressed;
@@ -167,9 +155,9 @@ class _MenuButton extends StatelessWidget {
     return TextButton(
       onPressed: onPressed,
       style: TextButton.styleFrom(
-        foregroundColor: Colors.white.withOpacity(0.9),
+        foregroundColor: Colors.white.withAlpha((255 * 0.9).round()),
         padding: const EdgeInsets.symmetric(vertical: 8.0),
-        overlayColor: Colors.white.withOpacity(0.1),
+        overlayColor: Colors.white.withAlpha((255 * 0.1).round()),
       ),
       child: Text(
         text,

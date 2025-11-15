@@ -2,29 +2,18 @@
 
 import 'package:flutter/material.dart';
 
-import '/game/dino_run.dart';
-import '/game/audio_manager.dart';
-import '/widgets/inventory_menu.dart';
-import '/widgets/level_selection_menu.dart';
-import '/widgets/settings_menu.dart';
-import '/widgets/store_menu.dart';
+import '../game/dino_run.dart';
+import 'inventory_menu.dart';
+import 'settings_menu.dart';
+import 'store_menu.dart';
 
-class MainMenu extends StatefulWidget {
+// No necesita ser StatefulWidget porque 'dino_run.dart' se encarga
+// de iniciar la música cuando este menú aparece.
+class MainMenu extends StatelessWidget {
   static const id = 'MainMenu';
   final DinoRun game;
 
   const MainMenu(this.game, {super.key});
-
-  @override
-  State<MainMenu> createState() => _MainMenuState();
-}
-
-class _MainMenuState extends State<MainMenu> {
-  @override
-  void initState() {
-    super.initState();
-    AudioManager.instance.startBgm('8BitPlatformerLoop.wav');
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,8 +41,8 @@ class _MainMenuState extends State<MainMenu> {
             _MenuButton(
               text: 'Jugar',
               onPressed: () {
-                widget.game.overlays.add(LevelSelectionMenu.id);
-                widget.game.overlays.remove(MainMenu.id);
+                // Orden directa al juego: "muestra la selección de nivel".
+                game.showLevelSelection();
               },
             ),
             const SizedBox(height: 10),
@@ -61,8 +50,9 @@ class _MainMenuState extends State<MainMenu> {
             _MenuButton(
               text: 'Inventario',
               onPressed: () {
-                widget.game.overlays.add(InventoryMenu.id);
-                widget.game.overlays.remove(MainMenu.id);
+                // Simplemente quitamos este menú y añadimos el del inventario.
+                game.overlays.remove(MainMenu.id);
+                game.overlays.add(InventoryMenu.id);
               },
             ),
             const SizedBox(height: 10),
@@ -70,8 +60,8 @@ class _MainMenuState extends State<MainMenu> {
             _MenuButton(
               text: 'Tienda',
               onPressed: () {
-                widget.game.overlays.remove(MainMenu.id);
-                widget.game.overlays.add(StoreMenu.id);
+                game.overlays.remove(MainMenu.id);
+                game.overlays.add(StoreMenu.id);
               },
             ),
             const SizedBox(height: 10),
@@ -79,8 +69,8 @@ class _MainMenuState extends State<MainMenu> {
             _MenuButton(
               text: 'Ajustes',
               onPressed: () {
-                widget.game.overlays.remove(MainMenu.id);
-                widget.game.overlays.add(SettingsMenu.id);
+                game.overlays.remove(MainMenu.id);
+                game.overlays.add(SettingsMenu.id);
               },
             ),
           ],
