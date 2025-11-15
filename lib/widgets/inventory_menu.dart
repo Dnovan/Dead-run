@@ -21,9 +21,8 @@ class InventoryMenu extends StatefulWidget {
 
 class _InventoryMenuState extends State<InventoryMenu> {
   late Future<List<StoreItem>> _futureInventoryItems;
-  StoreItem? _inspectedItem; // null = grid view, !null = inspect view
-
-  final String _playerId = '5836c3f4-9378-4e31-94c1-78e52482de34'; // TU UUID REAL AQUÍ
+  StoreItem? _inspectedItem;
+  final String _playerId = '5836c3f4-9378-4e31-94c1-78e52482de34';
 
   @override
   void initState() {
@@ -32,15 +31,10 @@ class _InventoryMenuState extends State<InventoryMenu> {
   }
 
   Future<List<StoreItem>> _fetchInventoryItems() async {
-    final inventoryResponse = await Supabase.instance.client
-        .from('player_inventory')
-        .select('item_id')
-        .eq('player_id', _playerId);
+    final inventoryResponse = await Supabase.instance.client.from('player_inventory').select('item_id').eq('player_id', _playerId);
     if (inventoryResponse.isEmpty) return [];
-
     final List<int> itemIds = inventoryResponse.map<int>((item) => item['item_id'] as int).toList();
     final itemsResponse = await Supabase.instance.client.from('store_items').select().filter('id', 'in', itemIds);
-
     return itemsResponse.map<StoreItem>((itemData) => StoreItem.fromMap(itemData)).toList();
   }
 
@@ -54,27 +48,30 @@ class _InventoryMenuState extends State<InventoryMenu> {
     }
   }
 
-  // Widget para la vista de cuadrícula (GridView)
+  // Vista de la cuadrícula de skins poseídas.
   Widget _buildInventoryGrid(List<StoreItem> items, PlayerData playerData) {
     return Column(
       children: [
         const Text('Inventario',
-          style: TextStyle(fontFamily: 'Audiowide', fontSize: 50, color: Colors.white, shadows: [Shadow(blurRadius: 10.0, color: Colors.black, offset: Offset(2, 2))]),
+          style: TextStyle(fontFamily: 'Audiowide', fontSize: 40, color: Colors.white, shadows: [Shadow(blurRadius: 10.0, color: Colors.black, offset: Offset(2, 2))]),
         ),
-        const Divider(color: Colors.white30, thickness: 2, height: 40),
+        const Divider(color: Colors.white30, thickness: 2, height: 20),
         Expanded(
           child: items.isEmpty
               ? const Center(
                   child: Text(
                     'Tu inventario está vacío.\n¡Visita la tienda para adquirir nuevas skins!',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontFamily: 'Audiowide', fontSize: 24, color: Colors.white70),
+                    style: TextStyle(fontFamily: 'Audiowide', fontSize: 20, color: Colors.white70),
                   ),
                 )
               : GridView.builder(
                   padding: const EdgeInsets.all(10),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 4, crossAxisSpacing: 20, mainAxisSpacing: 20, childAspectRatio: 0.8,
+                    crossAxisCount: 3, // 3 por fila en móvil
+                    crossAxisSpacing: 15,
+                    mainAxisSpacing: 15,
+                    childAspectRatio: 0.75,
                   ),
                   itemCount: items.length,
                   itemBuilder: (context, index) {
@@ -83,7 +80,7 @@ class _InventoryMenuState extends State<InventoryMenu> {
                     return Tooltip(
                       message: item.name,
                       child: InkWell(
-                        onTap: () => setState(() => _inspectedItem = item), // Al tocar, abre la inspección
+                        onTap: () => setState(() => _inspectedItem = item),
                         child: Container(
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(8),
@@ -94,7 +91,7 @@ class _InventoryMenuState extends State<InventoryMenu> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Expanded(child: Padding(padding: const EdgeInsets.all(8.0), child: Image.asset(item.gifPath, filterQuality: FilterQuality.none))),
-                              if (isEquipped) const Text('Equipado', style: TextStyle(color: Color(0xFF33D1FF), fontSize: 14, fontWeight: FontWeight.bold)),
+                              if (isEquipped) const Text('Equipado', style: TextStyle(color: Color(0xFF33D1FF), fontSize: 12, fontWeight: FontWeight.bold)),
                               const SizedBox(height: 5),
                             ],
                           ),
@@ -104,7 +101,7 @@ class _InventoryMenuState extends State<InventoryMenu> {
                   },
                 ),
         ),
-        const Divider(color: Colors.white30, thickness: 2, height: 40),
+        const Divider(color: Colors.white30, thickness: 2, height: 20),
         _MenuButton(text: 'Volver', onPressed: () {
           widget.game.overlays.remove(InventoryMenu.id);
           widget.game.overlays.add(MainMenu.id);
@@ -113,33 +110,35 @@ class _InventoryMenuState extends State<InventoryMenu> {
     );
   }
 
-  // Widget para la vista de inspección de un item
+  // Vista de inspección con scroll.
   Widget _buildInspectView(StoreItem item) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(item.name, style: const TextStyle(fontFamily: 'Audiowide', fontSize: 50, color: Colors.white, shadows: [Shadow(blurRadius: 10.0, color: Colors.black)])),
-        const SizedBox(height: 30),
-        SizedBox(width: 200, height: 200, child: Image.asset(item.gifPath, filterQuality: FilterQuality.none, fit: BoxFit.contain)),
-        const SizedBox(height: 20),
-        SizedBox(
-          width: 500,
-          child: Text(
-            item.description,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 20, color: Colors.white70, fontStyle: FontStyle.italic, shadows: [Shadow(blurRadius: 4.0, color: Colors.black)]),
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(item.name, style: const TextStyle(fontFamily: 'Audiowide', fontSize: 40, color: Colors.white, shadows: [Shadow(blurRadius: 10.0, color: Colors.black)])),
+          const SizedBox(height: 20),
+          SizedBox(width: 150, height: 150, child: Image.asset(item.gifPath, filterQuality: FilterQuality.none, fit: BoxFit.contain)),
+          const SizedBox(height: 15),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Text(
+              item.description,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 16, color: Colors.white70, fontStyle: FontStyle.italic, shadows: [Shadow(blurRadius: 4.0, color: Colors.black)]),
+            ),
           ),
-        ),
-        const SizedBox(height: 40),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _ActionButton(text: 'Equipar', onPressed: () => _equipItem(item)),
-            const SizedBox(width: 20),
-            _ActionButton(text: 'Cerrar', onPressed: () => setState(() => _inspectedItem = null)),
-          ],
-        )
-      ],
+          const SizedBox(height: 30),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _ActionButton(text: 'Equipar', onPressed: () => _equipItem(item)),
+              const SizedBox(width: 20),
+              _ActionButton(text: 'Cerrar', onPressed: () => setState(() => _inspectedItem = null)),
+            ],
+          )
+        ],
+      ),
     );
   }
 
@@ -148,15 +147,15 @@ class _InventoryMenuState extends State<InventoryMenu> {
     return ChangeNotifierProvider.value(
       value: widget.game.playerData,
       child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 800, maxHeight: 600),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
           child: Container(
-            padding: const EdgeInsets.all(30),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
             decoration: BoxDecoration(
               color: const Color(0xCC0A1724),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.white.withAlpha((255 * 0.2).round())),
-              boxShadow: [BoxShadow(color: Colors.black.withAlpha((255 * 0.5).round()), blurRadius: 15, spreadRadius: 5)],
+              border: Border.all(color: Colors.white.withOpacity(0.2)),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 15, spreadRadius: 5)],
             ),
             child: Consumer<PlayerData>(
               builder: (context, playerData, child) {
@@ -164,17 +163,15 @@ class _InventoryMenuState extends State<InventoryMenu> {
                   duration: const Duration(milliseconds: 300),
                   child: _inspectedItem == null
                       ? FutureBuilder<List<StoreItem>>(
-                          // Usamos una Key para asegurar que el FutureBuilder se reconstruya
                           key: ValueKey('inventory_grid'),
                           future: _futureInventoryItems,
                           builder: (context, snapshot) {
                             if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: Colors.white));
                             if (snapshot.hasError) return Center(child: Text('Error: ${snapshot.error}', style: const TextStyle(color: Colors.redAccent, fontSize: 18)));
-                            
                             return _buildInventoryGrid(snapshot.data ?? [], playerData);
                           },
                         )
-                      : Container( // Usamos una Key para la transición
+                      : Container(
                           key: ValueKey(_inspectedItem!.id),
                           child: _buildInspectView(_inspectedItem!),
                       ),
@@ -198,11 +195,11 @@ class _MenuButton extends StatelessWidget {
     return TextButton(
       onPressed: onPressed,
       style: TextButton.styleFrom(
-        foregroundColor: Colors.white.withAlpha((255 * 0.9).round()),
+        foregroundColor: Colors.white.withOpacity(0.9),
         padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 20),
-        overlayColor: Colors.white.withAlpha((255 * 0.1).round()),
+        overlayColor: Colors.white.withOpacity(0.1),
       ),
-      child: Text(text, style: const TextStyle(fontFamily: 'Audiowide', fontSize: 28.0, shadows: [Shadow(blurRadius: 8.0, color: Colors.black, offset: Offset(2, 2))])),
+      child: Text(text, style: const TextStyle(fontFamily: 'Audiowide', fontSize: 24.0, shadows: [Shadow(blurRadius: 8.0, color: Colors.black, offset: Offset(2, 2))])),
     );
   }
 }
@@ -216,9 +213,9 @@ class _ActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextButton(
-      style: TextButton.styleFrom(backgroundColor: const Color(0xFF33D1FF).withAlpha((255 * 0.2).round()), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)), padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15)),
+      style: TextButton.styleFrom(backgroundColor: const Color(0xFF33D1FF).withOpacity(0.2), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)), padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10)),
       onPressed: onPressed,
-      child: Text(text, style: const TextStyle(fontSize: 18, color: Colors.white)),
+      child: Text(text, style: const TextStyle(fontSize: 16, color: Colors.white)),
     );
   }
 }
