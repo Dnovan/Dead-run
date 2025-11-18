@@ -6,6 +6,7 @@ import '../game/dino_run.dart';
 import 'inventory_menu.dart';
 import 'settings_menu.dart';
 import 'store_menu.dart';
+import 'story_menu.dart';
 
 // No necesita ser StatefulWidget porque 'dino_run.dart' se encarga
 // de iniciar la música cuando este menú aparece.
@@ -32,21 +33,30 @@ class MainMenu extends StatelessWidget {
                 fontSize: 60.0,
                 color: Colors.white,
                 shadows: [
-                  Shadow(blurRadius: 12.0, color: Colors.black, offset: Offset(2, 2)),
+                  Shadow(
+                      blurRadius: 12.0,
+                      color: Colors.black,
+                      offset: Offset(2, 2)),
                 ],
               ),
             ),
             const SizedBox(height: 30.0),
-
             _MenuButton(
-              text: 'Jugar',
+              text: 'Modo Historia',
+              onPressed: () {
+                game.overlays.remove(MainMenu.id);
+                game.overlays.add(StoryMenu.id);
+              },
+            ),
+            const SizedBox(height: 10),
+            _MenuButton(
+              text: 'Modo Arcade',
               onPressed: () {
                 // Orden directa al juego: "muestra la selección de nivel".
                 game.showLevelSelection();
               },
             ),
             const SizedBox(height: 10),
-
             _MenuButton(
               text: 'Inventario',
               onPressed: () {
@@ -56,7 +66,6 @@ class MainMenu extends StatelessWidget {
               },
             ),
             const SizedBox(height: 10),
-
             _MenuButton(
               text: 'Tienda',
               onPressed: () {
@@ -65,7 +74,6 @@ class MainMenu extends StatelessWidget {
               },
             ),
             const SizedBox(height: 10),
-
             _MenuButton(
               text: 'Ajustes',
               onPressed: () {

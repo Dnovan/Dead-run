@@ -20,6 +20,9 @@ import '../widgets/hud.dart';
 import '../widgets/pause_menu.dart';
 import '../widgets/main_menu.dart';
 import '../widgets/level_selection_menu.dart';
+import '../models/chapter_data.dart';
+import '../widgets/cinematic_screen.dart';
+import '../widgets/chapter_complete_menu.dart';
 
 class DinoRun extends FlameGame with TapDetector, HasCollisionDetection {
   DinoRun({super.camera});
@@ -65,11 +68,19 @@ class DinoRun extends FlameGame with TapDetector, HasCollisionDetection {
   ParallaxComponent? parallaxBackground;
   RectangleComponent? _levelBackground; // Volvemos a necesitar la cortina negra
   String? currentLevel;
+  ChapterData? currentChapter;
 
   Vector2 get virtualSize => camera.viewport.virtualSize;
 
   @override
-  Color backgroundColor() => Colors.transparent;
+  Color backgroundColor() {
+    // Si estamos en un nivel, fondo negro opaco para tapar el GIF del menú.
+    // Si estamos en el menú (currentLevel == null), transparente para ver el GIF.
+    if (currentLevel != null) {
+      return const Color(0xFF000000);
+    }
+    return Colors.transparent;
+  }
 
   @override
   Future<void> onLoad() async {
@@ -115,8 +126,41 @@ class DinoRun extends FlameGame with TapDetector, HasCollisionDetection {
   }
 
   void showLevelSelection() {
+    currentChapter = null; // Aseguramos que no estamos en modo historia
     overlays.clear();
     overlays.add(LevelSelectionMenu.id);
+  }
+
+  void startChapter(ChapterData chapter) {
+    overlays.clear();
+    // Pasamos el capítulo al overlay de cinemática.
+    // Como el overlay se construye en main.dart, necesitamos una forma de pasarle datos.
+    // Una opción es tener una variable 'currentChapter' en DinoRun.
+    currentChapter = chapter;
+    overlays.add(CinematicScreen.id);
+  }
+
+  Future<void> startStoryLevel(ChapterData chapter) async {
+    // Iniciamos el nivel asociado al capítulo
+    await startGamePlay(chapter.levelId);
+    // Aquí podríamos añadir lógica extra para el modo historia,
+    // como objetivos específicos o límites de tiempo.
+  }
+
+  void startNextChapter() {
+    if (currentChapter == null) return;
+
+    // Buscar el siguiente capítulo por ID
+    final nextChapterId = currentChapter!.id + 1;
+    try {
+      final nextChapter =
+          ChapterData.chapters.firstWhere((c) => c.id == nextChapterId);
+      startChapter(nextChapter);
+    } catch (e) {
+      // No hay más capítulos
+      print("No hay más capítulos disponibles.");
+      showMainMenu();
+    }
   }
 
   Future<void> startGamePlay(String levelId) async {
@@ -198,6 +242,20 @@ class DinoRun extends FlameGame with TapDetector, HasCollisionDetection {
     super.update(dt);
     if (playerData.lives <= 0 && overlays.isActive(Hud.id)) {
       onGameOver();
+    }
+
+    // Lógica de victoria para el Modo Historia
+    if (currentChapter != null && overlays.isActive(Hud.id)) {
+      if (playerData.currentScore >= currentChapter!.targetScore) {
+        pauseEngine();
+
+        // Guardar progreso: Desbloquear el siguiente capítulo
+        // Si completamos el capítulo 1, desbloqueamos el 2 (highestCompletedChapter = 1).
+        playerData.completeChapter(currentChapter!.id);
+
+        overlays.remove(Hud.id);
+        overlays.add(ChapterCompleteMenu.id);
+      }
     }
   }
 

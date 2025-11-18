@@ -14,24 +14,69 @@ enum DinoAnimationStates { idle, run, kick, hit, sprint }
 
 class Dino extends SpriteAnimationGroupComponent<DinoAnimationStates>
     with CollisionCallbacks, HasGameReference<DinoRun> {
-
-  // El constructor ahora es privado. Nadie puede crear un Dino directamente.
-  Dino._(Image image, Map<DinoAnimationStates, SpriteAnimationData> animationMap, this.playerData)
+  // Constructor privado
+  Dino._(
+      Image image,
+      Map<DinoAnimationStates, SpriteAnimationData> animationMap,
+      this.playerData)
       : super.fromFrameData(image, animationMap);
 
-  // ¡LA MAGIA! Un método "fábrica" que construye el Dino correcto.
-  static Future<Dino> create(String skinAssetPath, PlayerData playerData) async {
-    final image = await Flame.images.load(skinAssetPath);
-    
-    // Aquí definimos las animaciones para cada skin.
-    // Por ahora, asumimos que todas son recolors y tienen el mismo layout.
-    // Si tuvieras una skin con animaciones diferentes, solo tendrías que cambiarlo aquí.
+  // Factory method create
+  static Future<Dino> create(
+      String skinAssetPath, PlayerData playerData) async {
+    print('--- DEBUG DINO CREATE ---');
+    print('Original skin path: "$skinAssetPath"');
+
+    // Limpiamos la ruta para Flame.
+    // Flame.images.load busca automáticamente en 'assets/images/',
+    // así que si la ruta ya incluye eso, lo quitamos para evitar duplicados.
+    String cleanPath = skinAssetPath;
+    if (cleanPath.startsWith('assets/images/')) {
+      cleanPath = cleanPath.replaceFirst('assets/images/', '');
+    }
+
+    print('Cleaned skin path for Flame: "$cleanPath"');
+
+    Image image;
+    try {
+      image = await Flame.images.load(cleanPath);
+      print('Skin cargada EXITOSAMENTE: $cleanPath');
+    } catch (e) {
+      print('FALLO al cargar skin "$cleanPath". Error: $e');
+      print('Intentando cargar skin por defecto: DinoSprites - tard.png');
+      try {
+        image = await Flame.images.load('DinoSprites - tard.png');
+        print('Skin por defecto cargada EXITOSAMENTE.');
+      } catch (e2) {
+        print(
+            'ERROR CRÍTICO: No se pudo cargar ni la skin solicitada ni la por defecto. $e2');
+        rethrow;
+      }
+    }
+
     final animationMap = {
-      DinoAnimationStates.idle: SpriteAnimationData.sequenced(amount: 4, stepTime: 0.1, textureSize: Vector2.all(24)),
-      DinoAnimationStates.run: SpriteAnimationData.sequenced(amount: 6, stepTime: 0.1, textureSize: Vector2.all(24), texturePosition: Vector2(4 * 24, 0)),
-      DinoAnimationStates.kick: SpriteAnimationData.sequenced(amount: 4, stepTime: 0.1, textureSize: Vector2.all(24), texturePosition: Vector2(10 * 24, 0)),
-      DinoAnimationStates.hit: SpriteAnimationData.sequenced(amount: 3, stepTime: 0.1, textureSize: Vector2.all(24), texturePosition: Vector2(14 * 24, 0)),
-      DinoAnimationStates.sprint: SpriteAnimationData.sequenced(amount: 7, stepTime: 0.1, textureSize: Vector2.all(24), texturePosition: Vector2(17 * 24, 0)),
+      DinoAnimationStates.idle: SpriteAnimationData.sequenced(
+          amount: 4, stepTime: 0.1, textureSize: Vector2.all(24)),
+      DinoAnimationStates.run: SpriteAnimationData.sequenced(
+          amount: 6,
+          stepTime: 0.1,
+          textureSize: Vector2.all(24),
+          texturePosition: Vector2(4 * 24, 0)),
+      DinoAnimationStates.kick: SpriteAnimationData.sequenced(
+          amount: 4,
+          stepTime: 0.1,
+          textureSize: Vector2.all(24),
+          texturePosition: Vector2(10 * 24, 0)),
+      DinoAnimationStates.hit: SpriteAnimationData.sequenced(
+          amount: 3,
+          stepTime: 0.1,
+          textureSize: Vector2.all(24),
+          texturePosition: Vector2(14 * 24, 0)),
+      DinoAnimationStates.sprint: SpriteAnimationData.sequenced(
+          amount: 7,
+          stepTime: 0.1,
+          textureSize: Vector2.all(24),
+          texturePosition: Vector2(17 * 24, 0)),
     };
 
     return Dino._(image, animationMap, playerData);
@@ -47,9 +92,8 @@ class Dino extends SpriteAnimationGroupComponent<DinoAnimationStates>
   @override
   void onMount() {
     _reset();
-    add(RectangleHitbox.relative(
-      Vector2(0.5, 0.7), parentSize: size, position: Vector2(size.x * 0.5, size.y * 0.3) / 2
-    ));
+    add(RectangleHitbox.relative(Vector2(0.5, 0.7),
+        parentSize: size, position: Vector2(size.x * 0.5, size.y * 0.3) / 2));
     yMax = y;
     _hitTimer.onTick = () {
       current = DinoAnimationStates.run;
@@ -65,7 +109,8 @@ class Dino extends SpriteAnimationGroupComponent<DinoAnimationStates>
     if (isOnGround) {
       y = yMax;
       speedY = 0.0;
-      if (current != DinoAnimationStates.hit && current != DinoAnimationStates.run) {
+      if (current != DinoAnimationStates.hit &&
+          current != DinoAnimationStates.run) {
         current = DinoAnimationStates.run;
       }
     }

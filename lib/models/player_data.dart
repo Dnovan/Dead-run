@@ -23,6 +23,12 @@ class PlayerData extends ChangeNotifier with HiveObjectMixin {
   @HiveField(3, defaultValue: 'DinoSprites - tard.png')
   String equippedSkinAssetPath = 'DinoSprites - tard.png';
 
+  // NUEVA PROPIEDAD PARA EL PROGRESO DE LA HISTORIA.
+  // Indica el ID del capítulo más alto completado.
+  // 0 = Ninguno. 1 = Capítulo 1 completado (desbloquea el 2), etc.
+  @HiveField(4, defaultValue: 0)
+  int highestCompletedChapter = 0;
+
   int _lives = 5;
   int get lives => _lives;
   set lives(int value) {
@@ -49,5 +55,14 @@ class PlayerData extends ChangeNotifier with HiveObjectMixin {
     equippedSkinAssetPath = newSkinPath;
     notifyListeners();
     save();
+  }
+
+  // Función para actualizar el progreso de la historia.
+  void completeChapter(int chapterId) {
+    if (chapterId > highestCompletedChapter) {
+      highestCompletedChapter = chapterId;
+      notifyListeners();
+      save();
+    }
   }
 }

@@ -20,6 +20,9 @@ import 'widgets/main_menu.dart';
 import 'widgets/pause_menu.dart';
 import 'widgets/settings_menu.dart';
 import 'widgets/store_menu.dart';
+import 'widgets/story_menu.dart';
+import 'widgets/cinematic_screen.dart';
+import 'widgets/chapter_complete_menu.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -110,6 +113,14 @@ class GameScreen extends StatelessWidget {
               LevelSelectionMenu.id: (_, game) =>
                   LevelSelectionMenu(game: game),
               StoreMenu.id: (_, game) => StoreMenu(game),
+              StoryMenu.id: (_, game) => StoryMenu(game),
+              CinematicScreen.id: (_, game) {
+                // Aseguramos que haya un capítulo seleccionado
+                if (game.currentChapter == null) return const SizedBox();
+                return CinematicScreen(
+                    game: game, chapter: game.currentChapter!);
+              },
+              ChapterCompleteMenu.id: (_, game) => ChapterCompleteMenu(game),
             },
             initialActiveOverlays: const [MainMenu.id],
             gameFactory: () => DinoRun(
