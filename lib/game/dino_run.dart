@@ -25,23 +25,39 @@ class DinoRun extends FlameGame with TapDetector, HasCollisionDetection {
   DinoRun({super.camera});
 
   static const _audioAssets = [
-    '8BitPlatformerLoop.wav', 'Desert_song.mp3', 'Montañas_song.mp3',
-    'hurt7.wav', 'jump14.wav',
+    '8BitPlatformerLoop.wav',
+    'Desert_song.mp3',
+    'Montañas_song.mp3',
+    'hurt7.wav',
+    'jump14.wav',
   ];
 
   static const _imageAssets = [
-      'fondo_juego.gif',
-      'DinoSprites - tard.png',
-      'Rino/dino_fuego.png', 'Rino/dino_toxico.png', 'Rino/dino_chad.png',
-      'AngryPig/Walk (36x30).png', 'Bat/Flying (46x30).png', 'Rino/Run (52x34).png',
-      'parallax/plx-1.png', 'parallax/plx-2.png', 'parallax/plx-3.png',
-      'parallax/plx-4.png', 'parallax/plx-5.png', 'parallax/plx-6.png',
-      'Desert/desert_background.png', 'Desert/desert_midground_far.png',
-      'Desert/desert_midground_near.png', 'Desert/desert_foreground_far.png',
-      'Desert/desert_foreground_near.png', 'Desert/desert_ground.png',
-      'Montañas/1.png', 'Montañas/2.png', 'Montañas/3.png',
+    'fondo_juego.gif',
+    'DinoSprites - tard.png',
+    'Rino/dino_fuego.png',
+    'Rino/dino_toxico.png',
+    'Rino/dino_chad.png',
+    'AngryPig/Walk (36x30).png',
+    'Bat/Flying (46x30).png',
+    'Rino/Run (52x34).png',
+    'parallax/plx-1.png',
+    'parallax/plx-2.png',
+    'parallax/plx-3.png',
+    'parallax/plx-4.png',
+    'parallax/plx-5.png',
+    'parallax/plx-6.png',
+    'Desert/desert_background.png',
+    'Desert/desert_midground_far.png',
+    'Desert/desert_midground_near.png',
+    'Desert/desert_foreground_far.png',
+    'Desert/desert_foreground_near.png',
+    'Desert/desert_ground.png',
+    'Montañas/1.png',
+    'Montañas/2.png',
+    'Montañas/3.png',
   ];
-  
+
   late Dino _dino;
   late Settings settings;
   late PlayerData playerData;
@@ -51,7 +67,7 @@ class DinoRun extends FlameGame with TapDetector, HasCollisionDetection {
   String? currentLevel;
 
   Vector2 get virtualSize => camera.viewport.virtualSize;
-  
+
   @override
   Color backgroundColor() => Colors.transparent;
 
@@ -67,28 +83,29 @@ class DinoRun extends FlameGame with TapDetector, HasCollisionDetection {
 
     showMainMenu();
   }
-      
+
   Future<void> _loadParallaxBackground(LevelData levelData) async {
     parallaxBackground?.removeFromParent();
-    
+
     // VERSIÓN COMPATIBLE: Creamos el parallax sin el parámetro 'fill'.
     final parallaxImages = <ParallaxImageData>[];
     for (final imageName in levelData.imageNames) {
       parallaxImages.add(ParallaxImageData('${levelData.folder}/$imageName'));
     }
-    
+
     parallaxBackground = await loadParallaxComponent(
       parallaxImages,
       baseVelocity: Vector2(levelData.speed, 0),
       velocityMultiplierDelta: Vector2(1.4, 0),
     );
-    parallaxBackground?.priority = -10; // Prioridad para que esté detrás de los personajes.
-    
-    world.add(parallaxBackground!); 
+    parallaxBackground?.priority =
+        -10; // Prioridad para que esté detrás de los personajes.
+
+    world.add(parallaxBackground!);
   }
 
   // --- MÉTODOS DE GESTIÓN DE ESTADO ---
-  
+
   void showMainMenu() {
     overlays.clear();
     cleanUpLevel();
@@ -101,27 +118,36 @@ class DinoRun extends FlameGame with TapDetector, HasCollisionDetection {
     overlays.clear();
     overlays.add(LevelSelectionMenu.id);
   }
-      
+
   Future<void> startGamePlay(String levelId) async {
+    // Limpiamos el nivel anterior (fondos, actores, etc.) para evitar duplicados.
+    cleanUpLevel();
+
     overlays.clear();
-    reset(); // Limpia los datos de la partida anterior.
+    reset(); // Reinicia puntuación y vidas.
 
     final levelData = LevelData.levels[levelId];
-    if (levelData == null) { return; }
-    
+    if (levelData == null) {
+      return;
+    }
+
     currentLevel = levelId;
 
     // AÑADIMOS LA CORTINA NEGRA para tapar el fondo global del GIF.
     _levelBackground = RectangleComponent(
       size: virtualSize,
       paint: Paint()..color = const Color(0xFF000000), // Color negro
-      priority: -11, // Prioridad aún más baja que el parallax para estar detrás de todo.
+      priority:
+          -11, // Prioridad aún más baja que el parallax para estar detrás de todo.
     );
     world.add(_levelBackground!);
 
     await _loadParallaxBackground(levelData);
     AudioManager.instance.startBgm(levelData.song);
-    
+
+    // Recargamos los datos del jugador para asegurar que la skin esté actualizada.
+    playerData = await _readPlayerData();
+
     _dino = await Dino.create(playerData.equippedSkinAssetPath, playerData);
     _enemyManager = EnemyManager();
 
@@ -131,7 +157,7 @@ class DinoRun extends FlameGame with TapDetector, HasCollisionDetection {
     overlays.add(Hud.id);
     resumeEngine();
   }
-      
+
   void _disconnectActors() {
     final dino = world.children.whereType<Dino>().firstOrNull;
     if (dino != null) dino.removeFromParent();
@@ -142,24 +168,25 @@ class DinoRun extends FlameGame with TapDetector, HasCollisionDetection {
       enemyManager.removeFromParent();
     }
   }
-      
+
   void cleanUpLevel() {
     _disconnectActors();
     parallaxBackground?.removeFromParent();
     parallaxBackground = null;
-    
+
     // Quitamos la cortina negra al volver al menú.
     _levelBackground?.removeFromParent();
     _levelBackground = null;
 
     currentLevel = null;
   }
-  
+
   void reset() {
     playerData.currentScore = 0;
     playerData.lives = 5;
+    _disconnectActors();
   }
-  
+
   void onGameOver() {
     pauseEngine();
     overlays.clear();
@@ -192,7 +219,8 @@ class DinoRun extends FlameGame with TapDetector, HasCollisionDetection {
   Future<Settings> _readSettings() async {
     final box = await Hive.openBox<Settings>('DinoRun.SettingsBox');
     final data = box.get('DinoRun.Settings');
-    if (data == null) await box.put('DinoRun.Settings', Settings(bgm: true, sfx: true));
+    if (data == null)
+      await box.put('DinoRun.Settings', Settings(bgm: true, sfx: true));
     return box.get('DinoRun.Settings')!;
   }
 

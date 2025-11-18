@@ -1,3 +1,62 @@
+// lib/main.dart
+
+import 'package:flame/camera.dart';
+import 'package:flame/game.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:hive/hive.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import 'game/dino_run.dart';
+import 'models/player_data.dart';
+import 'models/settings.dart';
+import 'widgets/game_over_menu.dart';
+import 'widgets/hud.dart';
+import 'widgets/inventory_menu.dart';
+import 'widgets/level_selection_menu.dart';
+import 'widgets/main_menu.dart';
+import 'widgets/pause_menu.dart';
+import 'widgets/settings_menu.dart';
+import 'widgets/store_menu.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await dotenv.load(fileName: ".env");
+
+  await Supabase.initialize(
+    url: dotenv.env['SUPABASE_URL']!,
+    anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
+  );
+
+  // Autenticación anónima para identificar al jugador de forma única.
+  try {
+    await Supabase.instance.client.auth.signInAnonymously();
+  } catch (e) {
+    debugPrint('Error en autenticación anónima: $e');
+    // Continuamos la ejecución aunque falle la autenticación
+    // para que la app no se quede en blanco.
+  }
+
+  await initHive();
+  runApp(const DinoRunApp());
+}
+
+Future<void> initHive() async {
+  if (!kIsWeb) {
+    final dir = await getApplicationDocumentsDirectory();
+    Hive.init(dir.path);
+  }
+  Hive.registerAdapter<PlayerData>(PlayerDataAdapter());
+  Hive.registerAdapter<Settings>(SettingsAdapter());
+}
+
+class DinoRunApp extends StatelessWidget {
+  const DinoRunApp({super.key});
+
+  @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -35,7 +94,7 @@ class GameScreen extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // CAPA 2: JUEGO TRANSPARENTE
           GameWidget<DinoRun>.controlled(
             loadingBuilder: (context) => const Center(
@@ -48,7 +107,8 @@ class GameScreen extends StatelessWidget {
               GameOverMenu.id: (_, game) => GameOverMenu(game),
               SettingsMenu.id: (_, game) => SettingsMenu(game),
               InventoryMenu.id: (_, game) => InventoryMenu(game: game),
-              LevelSelectionMenu.id: (_, game) => LevelSelectionMenu(game: game),
+              LevelSelectionMenu.id: (_, game) =>
+                  LevelSelectionMenu(game: game),
               StoreMenu.id: (_, game) => StoreMenu(game),
             },
             initialActiveOverlays: const [MainMenu.id],

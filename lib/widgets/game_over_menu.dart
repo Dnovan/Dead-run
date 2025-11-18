@@ -7,8 +7,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../game/dino_run.dart';
 import '../models/player_data.dart';
-import 'hud.dart';
-import 'main_menu.dart';
 
 class GameOverMenu extends StatefulWidget {
   static const id = 'GameOverMenu';
@@ -22,14 +20,14 @@ class GameOverMenu extends StatefulWidget {
 
 class _GameOverMenuState extends State<GameOverMenu> {
   // ¡¡IMPORTANTE!! Pega aquí el UUID de tu jugador que creaste en Supabase.
-  final String _playerId = '5836c3f4-9378-4e31-94c1-78e52482de34'; 
+  final String _playerId = '5836c3f4-9378-4e31-94c1-78e52482de34';
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final score = widget.game.playerData.currentScore;
-      
+
       widget.game.playerData.coins += score;
       widget.game.playerData.save();
 
@@ -56,16 +54,21 @@ class _GameOverMenuState extends State<GameOverMenu> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Game Over',
+              const Text(
+                'Game Over',
                 style: TextStyle(
                   fontFamily: 'Audiowide',
                   fontSize: 60,
                   color: Colors.white,
-                  shadows: [Shadow(blurRadius: 12.0, color: Colors.black, offset: Offset(2, 2))],
+                  shadows: [
+                    Shadow(
+                        blurRadius: 12.0,
+                        color: Colors.black,
+                        offset: Offset(2, 2))
+                  ],
                 ),
               ),
               const SizedBox(height: 30),
-
               Selector<PlayerData, int>(
                 selector: (_, playerData) => playerData.currentScore,
                 builder: (_, score, __) {
@@ -75,13 +78,17 @@ class _GameOverMenuState extends State<GameOverMenu> {
                       fontFamily: 'Audiowide',
                       fontSize: 40,
                       color: Colors.white,
-                      shadows: [Shadow(blurRadius: 8.0, color: Colors.black, offset: Offset(2, 2))],
+                      shadows: [
+                        Shadow(
+                            blurRadius: 8.0,
+                            color: Colors.black,
+                            offset: Offset(2, 2))
+                      ],
                     ),
                   );
                 },
               ),
               const SizedBox(height: 10),
-
               Selector<PlayerData, int>(
                 selector: (_, playerData) => playerData.currentScore,
                 builder: (_, score, __) {
@@ -91,39 +98,28 @@ class _GameOverMenuState extends State<GameOverMenu> {
                       fontFamily: 'Audiowide',
                       fontSize: 24,
                       color: Color(0xFFFFD700),
-                      shadows: [Shadow(blurRadius: 8.0, color: Colors.black, offset: Offset(2, 2))],
+                      shadows: [
+                        Shadow(
+                            blurRadius: 8.0,
+                            color: Colors.black,
+                            offset: Offset(2, 2))
+                      ],
                     ),
                   );
                 },
               ),
               const SizedBox(height: 50),
-
               _MenuButton(
                 text: 'Restart',
-                onPressed: () async {
-                  widget.game.overlays.remove(GameOverMenu.id);
-                  widget.game.overlays.add(Hud.id);
-                  widget.game.resumeEngine();
-                  
-                  // Lógica correcta, se reinician datos y se carga el mismo nivel.
-                  widget.game.playerData.currentScore = 0;
-                  widget.game.playerData.lives = 5;
-                  await widget.game.startGamePlay(widget.game.currentLevel!);
+                onPressed: () {
+                  widget.game.startGamePlay(widget.game.currentLevel!);
                 },
               ),
               const SizedBox(height: 15),
-
               _MenuButton(
                 text: 'Exit',
-                onPressed: () async {
-                  widget.game.overlays.remove(GameOverMenu.id);
-                  widget.game.overlays.add(MainMenu.id);
-                  widget.game.resumeEngine();
-
-                  // Llamada al nuevo 'reset' que limpia todo correctamente.
-                  widget.game.reset();
-
-                  await Future.delayed(const Duration(milliseconds: 10));
+                onPressed: () {
+                  widget.game.showMainMenu();
                 },
               ),
             ],
@@ -148,11 +144,14 @@ class _MenuButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         overlayColor: Colors.white.withAlpha((255 * 0.1).round()),
       ),
-      child: Text(text,
+      child: Text(
+        text,
         style: const TextStyle(
           fontFamily: 'Audiowide',
           fontSize: 28.0,
-          shadows: [Shadow(blurRadius: 8.0, color: Colors.black, offset: Offset(2, 2))],
+          shadows: [
+            Shadow(blurRadius: 8.0, color: Colors.black, offset: Offset(2, 2))
+          ],
         ),
       ),
     );
