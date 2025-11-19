@@ -37,8 +37,9 @@ Future<void> main() async {
   // Autenticación anónima para identificar al jugador de forma única.
   try {
     await Supabase.instance.client.auth.signInAnonymously();
+    await _ensurePlayerExists();
   } catch (e) {
-    debugPrint('Error en autenticación anónima: $e');
+    debugPrint('Error en autenticación anónima o creación de jugador: $e');
     // Continuamos la ejecución aunque falle la autenticación
     // para que la app no se quede en blanco.
   }
@@ -54,6 +55,35 @@ Future<void> initHive() async {
   }
   Hive.registerAdapter<PlayerData>(PlayerDataAdapter());
   Hive.registerAdapter<Settings>(SettingsAdapter());
+}
+
+Future<void> _ensurePlayerExists() async {
+  final user = Supabase.instance.client.auth.currentUser;
+  if (user == null) return;
+
+  try {
+    // Intentamos obtener el jugador
+    final data = await Supabase.instance.client
+        .from('players')
+        .select()
+        .eq('id', user.id)
+        .maybeSingle();
+
+    if (data == null) {
+      // Si no existe, lo creamos
+      await Supabase.instance.client.from('players').insert({
+        'id': user.id,
+        'username': 'Guest_${user.id.substring(0, 4)}',
+        // Añade otros campos por defecto si son necesarios, e.g. coins
+      });
+      debugPrint('Jugador creado en Supabase: ${user.id}');
+    } else {
+      debugPrint('Jugador ya existe en Supabase: ${user.id}');
+    }
+  } catch (e) {
+    debugPrint('Error verificando/creando jugador: $e');
+    rethrow; // Para que el catch principal lo capture
+  }
 }
 
 class DinoRunApp extends StatelessWidget {

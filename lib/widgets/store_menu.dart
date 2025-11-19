@@ -57,7 +57,22 @@ class _StoreMenuState extends State<StoreMenu> {
   @override
   void initState() {
     super.initState();
-    _futureData = _fetchStoreAndInventory();
+    _futureData = _syncAndFetch();
+  }
+
+  Future<List<dynamic>> _syncAndFetch() async {
+    if (_playerId.isNotEmpty) {
+      try {
+        // Sincronizamos las monedas locales con el servidor antes de cargar la tienda
+        await Supabase.instance.client.rpc('update_coins', params: {
+          'player_id': _playerId,
+          'new_coins': widget.game.playerData.coins,
+        });
+      } catch (e) {
+        debugPrint('Error sincronizando monedas: $e');
+      }
+    }
+    return _fetchStoreAndInventory();
   }
 
   Future<List<dynamic>> _fetchStoreAndInventory() async {
@@ -98,7 +113,9 @@ class _StoreMenuState extends State<StoreMenu> {
       if (mounted && (result as String).startsWith('¡Éxito')) {
         widget.game.playerData.coins -= item.price;
         widget.game.playerData.save();
-        setState(() => _futureData = _fetchStoreAndInventory());
+        setState(() {
+          _futureData = _fetchStoreAndInventory();
+        });
       }
       if (mounted)
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(

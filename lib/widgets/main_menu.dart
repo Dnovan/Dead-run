@@ -30,7 +30,7 @@ class MainMenu extends StatelessWidget {
               'Dead Run',
               style: TextStyle(
                 fontFamily: 'Audiowide',
-                fontSize: 60.0,
+                fontSize: 45.0, // Reducido de 60
                 color: Colors.white,
                 shadows: [
                   Shadow(
@@ -40,7 +40,7 @@ class MainMenu extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 30.0),
+            const SizedBox(height: 15.0), // Reducido de 30
             _MenuButton(
               text: 'Modo Historia',
               onPressed: () {
@@ -48,7 +48,7 @@ class MainMenu extends StatelessWidget {
                 game.overlays.add(StoryMenu.id);
               },
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 5), // Reducido de 10
             _MenuButton(
               text: 'Modo Arcade',
               onPressed: () {
@@ -56,7 +56,7 @@ class MainMenu extends StatelessWidget {
                 game.showLevelSelection();
               },
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 5),
             _MenuButton(
               text: 'Inventario',
               onPressed: () {
@@ -65,7 +65,7 @@ class MainMenu extends StatelessWidget {
                 game.overlays.add(InventoryMenu.id);
               },
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 5),
             _MenuButton(
               text: 'Tienda',
               onPressed: () {
@@ -73,7 +73,7 @@ class MainMenu extends StatelessWidget {
                 game.overlays.add(StoreMenu.id);
               },
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 5),
             _MenuButton(
               text: 'Ajustes',
               onPressed: () {
@@ -100,14 +100,15 @@ class _MenuButton extends StatelessWidget {
       onPressed: onPressed,
       style: TextButton.styleFrom(
         foregroundColor: Colors.white.withOpacity(0.9),
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        padding: const EdgeInsets.symmetric(
+            vertical: 4.0), // Reducido padding vertical
         overlayColor: Colors.white.withOpacity(0.1),
       ),
       child: Text(
         text,
         style: const TextStyle(
           fontFamily: 'Audiowide',
-          fontSize: 28.0,
+          fontSize: 24.0, // Reducido de 28
           shadows: [
             Shadow(blurRadius: 8.0, color: Colors.black, offset: Offset(2, 2)),
           ],

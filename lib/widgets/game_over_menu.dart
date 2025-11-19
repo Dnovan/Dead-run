@@ -20,7 +20,7 @@ class GameOverMenu extends StatefulWidget {
 
 class _GameOverMenuState extends State<GameOverMenu> {
   // ¡¡IMPORTANTE!! Pega aquí el UUID de tu jugador que creaste en Supabase.
-  final String _playerId = '5836c3f4-9378-4e31-94c1-78e52482de34';
+  String get _playerId => Supabase.instance.client.auth.currentUser?.id ?? '';
 
   @override
   void initState() {
