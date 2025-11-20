@@ -23,7 +23,7 @@ class Dino extends SpriteAnimationGroupComponent<DinoAnimationStates>
 
   // Factory method create
   static Future<Dino> create(
-      String skinAssetPath, PlayerData playerData) async {
+      String skinAssetPath, PlayerData playerData, double levelSpeed) async {
     print('--- DEBUG DINO CREATE ---');
     print('Original skin path: "$skinAssetPath"');
 
@@ -54,12 +54,20 @@ class Dino extends SpriteAnimationGroupComponent<DinoAnimationStates>
       }
     }
 
+    // Calculamos el stepTime basándonos en la velocidad del nivel.
+    // Base: velocidad 10 -> stepTime 0.1
+    // Si la velocidad es mayor, el stepTime debe ser menor (más rápido).
+    // Fórmula: 0.1 * (10 / levelSpeed)
+    // Limitamos el stepTime para que no sea ridículamente rápido ni lento.
+    double stepTime = 0.1 * (10 / levelSpeed);
+    stepTime = stepTime.clamp(0.05, 0.15);
+
     final animationMap = {
       DinoAnimationStates.idle: SpriteAnimationData.sequenced(
           amount: 4, stepTime: 0.1, textureSize: Vector2.all(24)),
       DinoAnimationStates.run: SpriteAnimationData.sequenced(
           amount: 6,
-          stepTime: 0.1,
+          stepTime: stepTime,
           textureSize: Vector2.all(24),
           texturePosition: Vector2(4 * 24, 0)),
       DinoAnimationStates.kick: SpriteAnimationData.sequenced(
@@ -74,7 +82,7 @@ class Dino extends SpriteAnimationGroupComponent<DinoAnimationStates>
           texturePosition: Vector2(14 * 24, 0)),
       DinoAnimationStates.sprint: SpriteAnimationData.sequenced(
           amount: 7,
-          stepTime: 0.1,
+          stepTime: stepTime, // También aplicamos al sprint
           textureSize: Vector2.all(24),
           texturePosition: Vector2(17 * 24, 0)),
     };

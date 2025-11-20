@@ -38,6 +38,8 @@ flutter:
     - assets/images/Rino/
     - assets/images/Desert/
     - assets/images/Montañas/
+    - assets/images/Praderas/
+    - assets/images/Cuevacristal/
     - assets/audio/
     - .env
 

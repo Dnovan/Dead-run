@@ -31,6 +31,8 @@ class DinoRun extends FlameGame with TapDetector, HasCollisionDetection {
     '8BitPlatformerLoop.wav',
     'Desert_song.mp3',
     'Montañas_song.mp3',
+    'Praderas_song.mp3',
+    'cave_song.mp3',
     'hurt7.wav',
     'jump14.wav',
   ];
@@ -59,6 +61,22 @@ class DinoRun extends FlameGame with TapDetector, HasCollisionDetection {
     'Montañas/1.png',
     'Montañas/2.png',
     'Montañas/3.png',
+    'Praderas/1.png',
+    'Praderas/2.png',
+    'Praderas/3.png',
+    'Praderas/4.png',
+    'Praderas/5.png',
+    'Praderas/6.png',
+    'Cuevacristal/plan_1.png',
+    'Cuevacristal/plan_2.png',
+    'Cuevacristal/plan_3.png',
+    'Cuevacristal/plan_4.png',
+    'Cuevacristal/plan_5.png',
+    'Cuevacristal/plan_6.png',
+    'background_praderas.png',
+    'background_cueva.png',
+    'cinematics/cinematic_4.png',
+    'cinematics/cinematic_5.png',
   ];
 
   late Dino _dino;
@@ -187,18 +205,21 @@ class DinoRun extends FlameGame with TapDetector, HasCollisionDetection {
     world.add(_levelBackground!);
 
     await _loadParallaxBackground(levelData);
-    AudioManager.instance.startBgm(levelData.song);
+    // AudioManager.instance.startBgm(levelData.song); // MOVED: To end of method
 
     // Recargamos los datos del jugador para asegurar que la skin esté actualizada.
     playerData = await _readPlayerData();
 
-    _dino = await Dino.create(playerData.equippedSkinAssetPath, playerData);
+    _dino = await Dino.create(
+        playerData.equippedSkinAssetPath, playerData, levelData.speed);
     _enemyManager = EnemyManager();
 
     world.add(_dino);
     world.add(_enemyManager);
 
     overlays.add(Hud.id);
+    AudioManager.instance.startBgm(
+        levelData.song); // MOVED HERE: Start music only when game is ready
     resumeEngine();
   }
 
@@ -214,6 +235,7 @@ class DinoRun extends FlameGame with TapDetector, HasCollisionDetection {
   }
 
   void cleanUpLevel() {
+    AudioManager.instance.stopBgm(); // ADDED: Stop any playing music
     _disconnectActors();
     parallaxBackground?.removeFromParent();
     parallaxBackground = null;

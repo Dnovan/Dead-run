@@ -22,56 +22,61 @@ class PauseMenu extends StatelessWidget {
         alignment: Alignment.centerLeft,
         child: Padding(
           padding: const EdgeInsets.only(left: 50.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Selector<PlayerData, int>(
-                selector: (_, playerData) => playerData.currentScore,
-                builder: (_, score, __) {
-                  return Text(
-                    'Score: $score',
-                    style: const TextStyle(
-                      fontFamily: 'Audiowide',
-                      fontSize: 40,
-                      color: Colors.white,
-                      shadows: [
-                        Shadow(blurRadius: 8.0, color: Colors.black, offset: Offset(2, 2)),
-                      ],
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 50),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Selector<PlayerData, int>(
+                  selector: (_, playerData) => playerData.currentScore,
+                  builder: (_, score, __) {
+                    return Text(
+                      'Score: $score',
+                      style: const TextStyle(
+                        fontFamily: 'Audiowide',
+                        fontSize: 30, // Reduced from 40
+                        color: Colors.white,
+                        shadows: [
+                          Shadow(
+                              blurRadius: 8.0,
+                              color: Colors.black,
+                              offset: Offset(2, 2)),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 20), // Reduced from 50
 
-              _MenuButton(
-                text: 'Resume',
-                onPressed: () {
-                  game.overlays.remove(PauseMenu.id);
-                  game.overlays.add(Hud.id);
-                  game.resumeEngine();
-                  AudioManager.instance.resumeBgm();
-                },
-              ),
-              const SizedBox(height: 15),
+                _MenuButton(
+                  text: 'Resume',
+                  onPressed: () {
+                    game.overlays.remove(PauseMenu.id);
+                    game.overlays.add(Hud.id);
+                    game.resumeEngine();
+                    AudioManager.instance.resumeBgm();
+                  },
+                ),
+                const SizedBox(height: 10), // Reduced from 15
 
-              _MenuButton(
-                text: 'Restart',
-                onPressed: () async {
-                  // No necesita remover el overlay de pausa, startGamePlay se encarga.
-                  await game.startGamePlay(game.currentLevel!);
-                },
-              ),
-              const SizedBox(height: 15),
+                _MenuButton(
+                  text: 'Restart',
+                  onPressed: () async {
+                    // No necesita remover el overlay de pausa, startGamePlay se encarga.
+                    await game.startGamePlay(game.currentLevel!);
+                  },
+                ),
+                const SizedBox(height: 10), // Reduced from 15
 
-              _MenuButton(
-                text: 'Exit',
-                onPressed: () {
-                  // Simplemente llama al director de escena para volver al menú.
-                  game.showMainMenu();
-                },
-              ),
-            ],
+                _MenuButton(
+                  text: 'Exit',
+                  onPressed: () {
+                    // Simplemente llama al director de escena para volver al menú.
+                    game.showMainMenu();
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -98,7 +103,7 @@ class _MenuButton extends StatelessWidget {
         text,
         style: const TextStyle(
           fontFamily: 'Audiowide',
-          fontSize: 28.0,
+          fontSize: 24.0, // Reduced from 28.0
           shadows: [
             Shadow(blurRadius: 8.0, color: Colors.black, offset: Offset(2, 2)),
           ],

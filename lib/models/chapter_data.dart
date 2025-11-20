@@ -26,7 +26,7 @@ class ChapterData {
       description: "Huye del bosque antes de que sea tarde.",
       cinematicPath: 'assets/images/cinematics/cinematic_1.png',
       levelId: 'forest', // Usamos el nivel del bosque (parallax)
-      targetScore: 100, // Meta sencilla para probar
+      targetScore: 20, // Meta sencilla para probar
       lore: [
         "Dino despierta en un mundo extraño, donde el silencio es inquietante.",
         "El instinto le grita que corra. Algo oscuro se aproxima.",
@@ -39,7 +39,7 @@ class ChapterData {
       description: "Sobrevive al calor del desierto.",
       cinematicPath: 'assets/images/cinematics/cinematic_2.png',
       levelId: 'desert', // Nivel del desierto
-      targetScore: 150, // Meta un poco más difícil
+      targetScore: 20, // Meta un poco más difícil
       lore: [
         "El bosque ha quedado atrás, pero el peligro persiste.",
         "El desierto es implacable. El sol quema y la arena es traicionera.",
@@ -52,11 +52,37 @@ class ChapterData {
       description: "Atraviesa las montañas heladas.",
       cinematicPath: 'assets/images/cinematics/cinematic_3.png',
       levelId: 'snow', // Nivel de nieve/montañas
-      targetScore: 200, // Meta final
+      targetScore: 20, // Meta final
       lore: [
         "El calor da paso a un frío mortal en las Cumbres Gélidas.",
         "El viento aúlla como una bestia hambrienta.",
         "La cima es la única esperanza. ¡Resiste, Dino!",
+      ],
+    ),
+    ChapterData(
+      id: 4,
+      title: "Capítulo 4: Praderas Infinitas",
+      description: "Corre por las vastas praderas.",
+      cinematicPath: 'assets/images/cinematics/cinematic_4.png',
+      levelId: 'praderas',
+      targetScore: 20,
+      lore: [
+        "El aire fresco de las praderas llena tus pulmones.",
+        "Pero no te detengas, el peligro acecha en la hierba alta.",
+        "¡Corre hacia el horizonte!",
+      ],
+    ),
+    ChapterData(
+      id: 5,
+      title: "Capítulo 5: Cueva de Cristal",
+      description: "Adéntrate en las profundidades brillantes.",
+      cinematicPath: 'assets/images/cinematics/cinematic_5.png',
+      levelId: 'cuevacristal',
+      targetScore: 100,
+      lore: [
+        "El brillo de los cristales ilumina el camino.",
+        "Pero cuidado, las sombras se esconden en cada rincón.",
+        "¡No te detengas, la salida está cerca!",
       ],
     ),
   ];

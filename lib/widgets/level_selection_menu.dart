@@ -44,6 +44,16 @@ class _LevelSelectionMenuState extends State<LevelSelectionMenu> {
       displayName: 'Cumbres Gélidas',
       assetPath: 'assets/images/background_nieve.png',
     ),
+    _LevelInfo(
+      levelId: 'praderas',
+      displayName: 'Praderas Infinitas',
+      assetPath: 'assets/images/background_praderas.png',
+    ),
+    _LevelInfo(
+      levelId: 'cuevacristal',
+      displayName: 'Cueva de Cristal',
+      assetPath: 'assets/images/background_cueva.png',
+    ),
   ];
 
   int _selectedIndex = 0;
@@ -53,7 +63,8 @@ class _LevelSelectionMenuState extends State<LevelSelectionMenu> {
   }
 
   void _selectPrevious() {
-    setState(() => _selectedIndex = (_selectedIndex - 1 + _levels.length) % _levels.length);
+    setState(() => _selectedIndex =
+        (_selectedIndex - 1 + _levels.length) % _levels.length);
   }
 
   @override
@@ -71,17 +82,20 @@ class _LevelSelectionMenuState extends State<LevelSelectionMenu> {
               fontFamily: 'Audiowide',
               fontSize: 50,
               color: Colors.white,
-              shadows: [Shadow(blurRadius: 10.0, color: Colors.black, offset: Offset(2, 2))],
+              shadows: [
+                Shadow(
+                    blurRadius: 10.0, color: Colors.black, offset: Offset(2, 2))
+              ],
             ),
           ),
           const SizedBox(height: 40),
-
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               IconButton(
-                icon: const Icon(Icons.arrow_left, color: Colors.white, size: 50),
+                icon:
+                    const Icon(Icons.arrow_left, color: Colors.white, size: 50),
                 onPressed: _selectPrevious,
               ),
               const SizedBox(width: 20),
@@ -104,20 +118,25 @@ class _LevelSelectionMenuState extends State<LevelSelectionMenu> {
                       fontFamily: 'Audiowide',
                       fontSize: 24,
                       color: Colors.white,
-                       shadows: [Shadow(blurRadius: 6.0, color: Colors.black, offset: Offset(2, 2))],
+                      shadows: [
+                        Shadow(
+                            blurRadius: 6.0,
+                            color: Colors.black,
+                            offset: Offset(2, 2))
+                      ],
                     ),
                   ),
                 ],
               ),
               const SizedBox(width: 20),
               IconButton(
-                icon: const Icon(Icons.arrow_right, color: Colors.white, size: 50),
+                icon: const Icon(Icons.arrow_right,
+                    color: Colors.white, size: 50),
                 onPressed: _selectNext,
               ),
             ],
           ),
           const SizedBox(height: 30),
-
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

@@ -48,7 +48,34 @@ class LevelData {
       ],
       folder: 'Montañas',
       song: 'Montañas_song.mp3',
-      speed: 15, // La velocidad más rápida para este nivel
+      speed:
+          36, // Compensamos por tener menos capas (3 vs 6) para igualar la velocidad del suelo
+    ),
+    'praderas': const LevelData(
+      imageNames: [
+        '1.png',
+        '2.png',
+        '3.png',
+        '4.png',
+        '5.png',
+        '6.png',
+      ],
+      folder: 'Praderas',
+      song: 'Praderas_song.mp3',
+      speed: 13,
+    ),
+    'cuevacristal': const LevelData(
+      imageNames: [
+        'plan_5.png',
+        'plan_4.png',
+        'plan_3.png',
+        'plan_2.png',
+        'plan_1.png',
+        'plan_6.png',
+      ],
+      folder: 'Cuevacristal',
+      song: 'cave_song.mp3',
+      speed: 13,
     ),
   };
 }
